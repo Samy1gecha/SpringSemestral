@@ -13,9 +13,9 @@ public class UserController {
      * @param password Contraseña del nuevo usuario
      * @param gmail Correo electrónico del nuevo usuario
      */
-    public void registrarUsuario(String username, String password, String gmail) {
+    public void registrarUsuario(String username, String password, String gmail, String role) {
         // Crear un nuevo objeto User y agregarlo al repositorio
-        User user = new User(username, password, gmail);
+        User user = new User(username, password, gmail, role);
         userRepository.addUser(user);
     }
 
@@ -36,12 +36,13 @@ public class UserController {
     }
 
     //Actualiza los datos de un usuario en el repositorio.
+    //Reemplaza el usuario por el otro
     public void actualizarUsuario(User user) {
         // Actualizar el usuario en el repositorio
         userRepository.updateUser(user);
     }
 
-     //Elimina un usuario del repositorio por su nombre de usuario
+    //Elimina un usuario del repositorio por su nombre de usuario
     public void eliminarUsuario(String username) {
         // Eliminar el usuario del repositorio
         userRepository.removeUser(username);
