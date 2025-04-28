@@ -19,29 +19,20 @@ public class UserController {
         userRepository.addUser(user);
     }
 
-    /**
-     * Inicia sesión de un usuario verificando su nombre de usuario y contraseña.
-     * @param username Nombre de usuario del usuario que desea iniciar sesión
-     * @param password Contraseña del usuario
-     * @return Mensaje de éxito o error
-     */
-    public String loginUsuario(String username, String password) {
-        // Buscar el usuario en el repositorio y verificar sus credenciales
-        for (User user : userRepository.getUsers()) {
-            if (user.getUsername().equalsIgnoreCase(username) && user.getPassword().equals(password)) {
-                return "Login exitoso";
-            }
-        }
-        return "Usuario o contraseña incorrectos";
-    }
-
     //Actualiza los datos de un usuario en el repositorio.
     //Reemplaza el usuario por el otro
     public void actualizarUsuario(User user) {
         // Actualizar el usuario en el repositorio
         userRepository.updateUser(user);
     }
-
+    // Método para obtener usuarios por rol
+    public List<User> obtenerUsuariosPorRol(String role) {
+        return userRepository.getUsersByRole(role);
+    }
+    // Método para actualizar el rol de un usuario
+    public void actualizarRolUsuario(String username, String newRole) {
+        userRepository.updateUserRole(username, newRole);
+    }
     //Elimina un usuario del repositorio por su nombre de usuario
     public void eliminarUsuario(String username) {
         // Eliminar el usuario del repositorio

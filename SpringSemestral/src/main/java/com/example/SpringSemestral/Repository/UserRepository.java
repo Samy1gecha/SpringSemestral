@@ -63,4 +63,33 @@ public class UserRepository {
         }
         return output.toString();
     }
+    /**
+     * Obtiene todos los usuarios que tengan un rol específico.
+     * @param role El rol a filtrar (ej: "ADMIN", "CLIENTE", "EMPLEADO")
+     * @return Lista de usuarios que tienen ese rol
+     */
+    public List<User> getUsersByRole(String role) {
+        List<User> usersByRole = new ArrayList<>();
+        for (User user : users) {
+            if (user.getRole().equalsIgnoreCase(role)) {
+                usersByRole.add(user);
+            }
+        }
+        return usersByRole;
+    }
+    /**
+     * Actualiza el rol de un usuario específico.
+     * @param username Nombre del usuario cuyo rol se actualizará.
+     * @param newRole Nuevo rol que se asignará al usuario.
+     */
+    public void updateUserRole(String username, String newRole) {
+        for (User user : users) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                user.setRole(newRole);
+                System.out.println("Rol de usuario actualizado con éxito.");
+                return;
+            }
+        }
+        System.out.println("Usuario no encontrado.");
+    }
 }

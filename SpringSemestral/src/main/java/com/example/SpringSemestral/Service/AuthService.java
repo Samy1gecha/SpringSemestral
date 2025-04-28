@@ -19,16 +19,17 @@ public class AuthService {
      * @return mensaje indicando éxito o error
      */
     public String login(String username, String password) {
-        for (User user : userRepository.findAll()) {
+        // Buscar el usuario en el repositorio
+        for (User user : userRepository.getUsers()) {
             if (user.getUsername().equalsIgnoreCase(username)) {
+                // Verificar si las contraseñas coinciden (por ejemplo con BCrypt)
                 if (user.getPassword().equals(password)) {
-                    return "Login exitoso. Bienvenido, " + username;
-                } else {
-                    return "Contraseña incorrecta.";
+                    return "Login exitoso";
                 }
+                return "Contraseña incorrecta";
             }
         }
-        return "Usuario no encontrado.";
+        return "Usuario no encontrado";
     }
 
     /**
