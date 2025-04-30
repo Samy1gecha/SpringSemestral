@@ -1,95 +1,67 @@
-package Repository;
+package com.example.SpringSemestral.Repository;
 
-import Modelo.User;
+import com.example.SpringSemestral.Model.User;
+import org.springframework.stereotype.Repository;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class UserRepository {
     private List<User> users = new ArrayList<>();
 
     public UserRepository() {
-        // Constructor vacío
+
     }
-    //Busca un usuario por su nombre de usuario y devuelve su información como String.
-    public String getUser(String username){
+
+    public String getUser(int id) {
         for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
+            if (user.getId() == id) {
                 return user.toString();
             }
         }
         return "Usuario no encontrado";
     }
-    //Agrega un nuevo usuario a la lista
-    public void addUser(User user){
+
+    public String addUser(User user) {
         users.add(user);
-        System.out.println("Usuario agregado con éxito");
+        return "Usuario agregado con exito";
     }
-    //Elimina un usuario de la lista
-    public void removeUser(String username){
-        boolean removed = false;
+
+    public String removeUser(int id) {
         for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
+            if (user.getId() == id) {
                 users.remove(user);
-                System.out.println("Usuario eliminado con éxito");
-                removed = true;
-                break;
+                return "Usuario removido con exito";
             }
         }
-        if (!removed) {
-            System.out.println("Usuario no encontrado");
-        }
+        return "Usuario no encontrado";
     }
-    //Actualiza la informacion de un usuario existente
-    public void updateUser(User newUser){
-        boolean updated = false;
+
+    public String updateUser(User newUser) {
         for (User user : users) {
             if (user.getUsername().equalsIgnoreCase(newUser.getUsername())) {
+                //SET = Indice + objeto nuevo para reemplazar
                 int index = users.indexOf(user);
                 users.set(index, newUser);
-                System.out.println("Usuario actualizado con éxito");
-                updated = true;
-                break;
+                return "Usuario actualizado con exito";
             }
         }
-        if (!updated) {
-            System.out.println("Usuario no encontrado");
-        }
+        return "Usuario no encontrado";
     }
-    //Devuelve una representacion de todos los usuarios creados
-    public String getUsers(){
-        StringBuilder output = new StringBuilder();
+
+    public String getUsers() {
+        String output = "";
         for (User user : users) {
-            output.append(user.toString()).append("\n");
+            output += "Id: " + user.getId() + "\n";
+            output += "Username: " + user.getUsername() + "\n";
+            output += "Password: " + user.getPassword() + "\n";
+            output += "Email: " + user.getEmail() + "\n\n";
         }
-        return output.toString();
-    }
-    /**
-     * Obtiene todos los usuarios que tengan un rol específico.
-     * @param role El rol a filtrar (ej: "ADMIN", "CLIENTE", "EMPLEADO")
-     * @return Lista de usuarios que tienen ese rol
-     */
-    public List<User> getUsersByRole(String role) {
-        List<User> usersByRole = new ArrayList<>();
-        for (User user : users) {
-            if (user.getRole().equalsIgnoreCase(role)) {
-                usersByRole.add(user);
-            }
+        if(output.isEmpty()){
+            return "No existen usuarios";
+        }else{
+            return output;
         }
-        return usersByRole;
-    }
-    /**
-     * Actualiza el rol de un usuario específico.
-     * @param username Nombre del usuario cuyo rol se actualizará.
-     * @param newRole Nuevo rol que se asignará al usuario.
-     */
-    public void updateUserRole(String username, String newRole) {
-        for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
-                user.setRole(newRole);
-                System.out.println("Rol de usuario actualizado con éxito.");
-                return;
-            }
-        }
-        System.out.println("Usuario no encontrado.");
     }
 }
