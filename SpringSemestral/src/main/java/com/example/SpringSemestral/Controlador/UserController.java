@@ -9,7 +9,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 
-public class Controller {
+public class UserController {
     @Autowired
     UserService userService;
 
