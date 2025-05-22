@@ -28,4 +28,13 @@ public class PedidoController {
     public List<Pedido> listarPorCliente(@PathVariable int clienteId) {
         return pedidoService.listarPedidosPorCliente(clienteId);
     }
+    @PutMapping("/{id}/confirmar-pago")
+    public String confirmarPago(@PathVariable int id) {
+        return pedidoService.confirmarPago(id);
+    }
+    @PutMapping("/{id}/cancelar")
+    public String cancelarPedido(@PathVariable int id) {
+        return pedidoService.cancelarPedido(id);
+    }
+
 }

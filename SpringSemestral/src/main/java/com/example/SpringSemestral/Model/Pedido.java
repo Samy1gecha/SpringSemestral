@@ -27,4 +27,7 @@ public class Pedido {
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     private List<DetallePedido> detalles;
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
+    private Factura factura;
+
 }
