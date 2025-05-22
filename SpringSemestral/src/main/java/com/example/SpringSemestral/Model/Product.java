@@ -16,6 +16,7 @@ public class Product {
     @Column(unique = true)
     private String nombre;
     private String descripcion;
+
     private double precio;
     private int stock;
 }

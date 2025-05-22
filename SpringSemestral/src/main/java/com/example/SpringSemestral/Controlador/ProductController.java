@@ -33,7 +33,7 @@ public class ProductController {
             // Si no hay rol o no está autorizado
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado");
         }
-        // Si está autorizado, agrega el producto y devuelve 200 OK
+
         return ResponseEntity.ok(productService.addProduct(product));
     }
 

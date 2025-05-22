@@ -31,8 +31,13 @@ public class PedidoService {
     }
 
     public List<Pedido> listarPedidosPorCliente(int clienteId) {
-        return pedidoRepository.findByClienteId(clienteId);
+        return pedidoRepository.findByCliente_Id(clienteId);
     }
+    public Pedido getPedidoById(Integer pedidoId) {
+        return pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+    }
+
     public String confirmarPago(int pedidoId) {
         Pedido pedido = pedidoRepository.findById(pedidoId).orElse(null);
         if (pedido == null) return "Pedido no encontrado";

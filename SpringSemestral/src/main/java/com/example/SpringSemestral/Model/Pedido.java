@@ -24,7 +24,8 @@ public class Pedido {
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     private User cliente;
-
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
+    private Envio envio;
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     private List<DetallePedido> detalles;
     @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)

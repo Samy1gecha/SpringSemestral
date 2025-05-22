@@ -15,6 +15,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private int id;
+
     private String username;
     private String password;
     @Column(unique = true)  // <-- Aquí el email será único en BD

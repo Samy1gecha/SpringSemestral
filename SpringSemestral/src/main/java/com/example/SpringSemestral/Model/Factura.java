@@ -1,4 +1,5 @@
 package com.example.SpringSemestral.Model;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +20,7 @@ public class Factura {
     private LocalDate fechaEmision;
 
     private double montoTotal;
-
+    @JsonIgnoreProperties({"factura"}) // evitar que el pedido incluya la factura de vuelta
     @OneToOne
     @JoinColumn(name = "pedido_id")
     private Pedido pedido;
