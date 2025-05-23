@@ -9,7 +9,6 @@ import lombok.*;
 @Entity
 @Table(name = "PRODUCTOS")
 public class Product {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

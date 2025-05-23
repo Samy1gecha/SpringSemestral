@@ -8,6 +8,7 @@ import com.example.SpringSemestral.Repository.ProductRepository;
 import com.example.SpringSemestral.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -15,26 +16,38 @@ import java.util.List;
 public class ResenaService {
 
     @Autowired
-    private ResenaRepository reseñaRepo;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepo;
+    private ProductRepository productRepository;
 
-    @Autowired
-    private ProductRepository productRepo;
     @Autowired
     private ResenaRepository resenaRepository;
 
-    public String crear(int clienteId, int productId, String comentario, int calificacion) {
-        User cliente = userRepo.findById(clienteId).orElse(null);
-        Product product = productRepo.findById(productId).orElse(null);
+    public String crearDesdeObjeto(@RequestBody Resena resena) {
+        System.out.println("Cliente: " + resena.getCliente());
+        System.out.println("Producto: " + resena.getProduct());
 
-        if (cliente == null || product == null) return "Cliente o producto no encontrado";
+        if (resena.getCliente() == null || resena.getProduct() == null) {
+            return "Debe incluir cliente y producto con sus IDs";
+        }
 
-        Resena resena = new Resena(0, comentario, calificacion, cliente, product);
-        reseñaRepo.save(resena);
-        return "Reseña creada";
+        User cliente = userRepository.findById(resena.getCliente().getId()).orElse(null);
+        Product product = productRepository.findById(resena.getProduct().getId()).orElse(null);
+
+        if (cliente == null || product == null) {
+            return "Cliente o producto no encontrado";
+        }
+
+        resena.setCliente(cliente);
+        resena.setProduct(product);
+
+        resenaRepository.save(resena);
+        return "Reseña creada con éxito";
     }
+
+
+
 
     public List<Resena> verPorProduct(int productId) {
         return resenaRepository.findByProduct_Id(productId);
