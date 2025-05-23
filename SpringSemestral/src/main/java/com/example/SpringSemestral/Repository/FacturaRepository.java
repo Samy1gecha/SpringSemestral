@@ -12,5 +12,10 @@ public interface FacturaRepository extends JpaRepository<Factura, Integer> {
     List<Factura> findByPedido_Cliente_Id(int clienteId);
 
     List<Factura> findByFechaEmisionBetween(LocalDate desde, LocalDate hasta);
+
+    List<Factura> findByCliente_Id(int clienteId);
+
+    List<Factura> findAll();
+
 }
 

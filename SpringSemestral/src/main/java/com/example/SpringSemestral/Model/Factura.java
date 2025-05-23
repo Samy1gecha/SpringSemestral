@@ -1,4 +1,5 @@
 package com.example.SpringSemestral.Model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
@@ -18,6 +19,10 @@ public class Factura {
     private int id;
 
     private LocalDate fechaEmision;
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    @JsonIgnore
+    private User cliente;
 
     private double montoTotal;
     @JsonIgnoreProperties({"factura"}) // evitar que el pedido incluya la factura de vuelta

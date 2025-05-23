@@ -1,6 +1,7 @@
 package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.Factura;
+import com.example.SpringSemestral.Model.Resena;
 import com.example.SpringSemestral.Repository.FacturaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,10 @@ public class FacturaController {
     @GetMapping("/cliente/{clienteId}")
     public List<Factura> porCliente(@PathVariable int clienteId) {
         return facturaRepository.findByPedido_Cliente_Id(clienteId);
+    }
+    @GetMapping
+    public List<Factura> verTodas() {
+        return facturaRepository.findAll();
     }
 
     @GetMapping("/por-fecha")

@@ -75,6 +75,7 @@ public class PedidoService {
             factura.setFechaEmision(LocalDate.now());
             factura.setMontoTotal(total);
             factura.setPedido(pedido);
+            factura.setCliente(pedido.getCliente());
 
             // Asociar factura al pedido (relación bidireccional)
             pedido.setFactura(factura);
