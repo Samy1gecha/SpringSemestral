@@ -23,6 +23,11 @@ public class ResenaController {
     public List<Resena> verPorProduct(@PathVariable int id) {
         return resenaService.verPorProduct(id);
     }
+    @GetMapping
+    public List<Resena> verTodas() {
+        return resenaService.verTodasResenas(); // este método debe retornar resenaRepository.findAll()
+    }
+
     @GetMapping("/cliente/{id}")
     public List<Resena> verPorClient(@PathVariable int id) {
         return resenaService.verPorCliente(id);

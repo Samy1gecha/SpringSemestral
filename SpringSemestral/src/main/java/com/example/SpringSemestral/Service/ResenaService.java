@@ -46,8 +46,9 @@ public class ResenaService {
         return "Reseña creada con éxito";
     }
 
-
-
+    public List<Resena> verTodasResenas() {
+        return resenaRepository.findAll();
+    }
 
     public List<Resena> verPorProduct(int productId) {
         return resenaRepository.findByProduct_Id(productId);
