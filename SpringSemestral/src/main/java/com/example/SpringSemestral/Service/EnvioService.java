@@ -51,8 +51,18 @@ public class EnvioService {
         if (optionalEnvio.isEmpty()) {
             throw new IllegalArgumentException("Envío no encontrado");
         }
+
         Envio envio = optionalEnvio.get();
         envio.setEstado(nuevoEstado);
+        // Si el envío es "Entregado", actualizamos también el estado del Pedido
+        if ("Entregado".equalsIgnoreCase(nuevoEstado)) {
+            Pedido pedido = envio.getPedido();
+
+            if (pedido != null) { // Verificar que el pedido existe antes de actualizarlo
+                pedido.setEstado("Entregado");
+                pedidoRepository.save(pedido); // Guardamos el cambio en la BD
+            }
+        }
         return envioRepository.save(envio);
     }
     public List<Envio> listarEnvios() {
