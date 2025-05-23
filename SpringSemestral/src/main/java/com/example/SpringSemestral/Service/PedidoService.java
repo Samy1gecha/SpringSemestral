@@ -1,6 +1,8 @@
 package com.example.SpringSemestral.Service;
 
+import com.example.SpringSemestral.Model.Cupon;
 import com.example.SpringSemestral.Model.Pedido;
+import com.example.SpringSemestral.Repository.CuponRepository;
 import com.example.SpringSemestral.Repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,13 +20,31 @@ public class PedidoService {
     @Autowired
     private FacturaRepository facturaRepository;
 
-    public String crearPedido(Pedido pedido) {
+    @Autowired
+    private CuponRepository cuponRepository;
+
+    public String crearPedido(Pedido pedido, String cuponCodigo) {
         pedido.setFecha(LocalDate.now());
         pedido.setEstado("PENDIENTE");
-        pedido.getDetalles().forEach(d -> d.setPedido(pedido)); // vincula detalles al pedido
+
+        double total = pedido.getDetalles().stream()
+                .mapToDouble(d -> d.getCantidad() * d.getPrecioUnitario())
+                .sum();
+
+        if (cuponCodigo != null) {
+            Cupon cupon = cuponRepository.findByCodigo(cuponCodigo).orElse(null);
+            if (cupon != null) {
+                double descuento = total * (cupon.getPorcentajeDescuento() / 100.0);
+                total -= descuento;
+            }
+        }
+
+        pedido.getDetalles().forEach(d -> d.setPedido(pedido));
         pedidoRepository.save(pedido);
-        return "Pedido creado con éxito";
+
+        return "Pedido creado con total: $" + total;
     }
+
 
     public List<Pedido> listarPedidos() {
         return pedidoRepository.findAll();

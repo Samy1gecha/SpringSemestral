@@ -15,8 +15,15 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @PostMapping
-    public String crear(@RequestBody Pedido pedido) {
-        return pedidoService.crearPedido(pedido);
+    public String crearPedido(@RequestBody Pedido pedido,
+                              @RequestParam(required = false) String cupon) {
+        return pedidoService.crearPedido(pedido, cupon);
+    }
+    @GetMapping("/{id}/seguimiento")
+    public String seguimiento(@PathVariable int id) {
+        Pedido pedido = pedidoService.getPedidoById(id);
+        if (pedido == null) return "Pedido no encontrado";
+        return "Estado actual del pedido: " + pedido.getEstado();
     }
 
     @GetMapping
