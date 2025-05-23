@@ -3,6 +3,7 @@ package com.example.SpringSemestral.Service;
 import com.example.SpringSemestral.Model.Envio;
 import com.example.SpringSemestral.Model.Pedido;
 import com.example.SpringSemestral.Repository.EnvioRepository;
+import com.example.SpringSemestral.Repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,10 @@ public class EnvioService {
 
     @Autowired
     private EnvioRepository envioRepository;
-
     @Autowired
     private PedidoService pedidoService; // Para buscar pedidos
+    @Autowired
+    private PedidoRepository pedidoRepository;
 
     public Envio asignarPedidoAEnvio(Integer pedidoId, String ruta) {
         System.out.println("Buscando pedido con id " + pedidoId);
@@ -51,7 +53,6 @@ public class EnvioService {
         if (optionalEnvio.isEmpty()) {
             throw new IllegalArgumentException("Envío no encontrado");
         }
-
         Envio envio = optionalEnvio.get();
         envio.setEstado(nuevoEstado);
         // Si el envío es "Entregado", actualizamos también el estado del Pedido
@@ -60,6 +61,7 @@ public class EnvioService {
 
             if (pedido != null) { // Verificar que el pedido existe antes de actualizarlo
                 pedido.setEstado("Entregado");
+                System.out.println("Actualizando estado del pedido a Entregado: " + pedido.getId());
                 pedidoRepository.save(pedido); // Guardamos el cambio en la BD
             }
         }
@@ -80,5 +82,6 @@ public class EnvioService {
             return new ArrayList<>();
         }
     }
+
 }
 

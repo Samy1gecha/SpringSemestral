@@ -2,6 +2,7 @@ package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.Envio;
 import com.example.SpringSemestral.Model.Pedido;
+import com.example.SpringSemestral.Repository.EnvioRepository;
 import com.example.SpringSemestral.Service.EnvioService;
 import com.example.SpringSemestral.Service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/envios")
@@ -18,7 +20,8 @@ public class EnvioController {
     private EnvioService envioService;
     @Autowired
     private PedidoService pedidoService;
-
+    @Autowired
+    private EnvioRepository envioRepository;
     @GetMapping
     public List<Envio> listarEnvios() {
         return envioService.listarEnvios();
@@ -64,5 +67,12 @@ public class EnvioController {
     public List<Envio> obtenerEnviosPorCliente(@RequestParam int clienteId) {
         return envioService.obtenerPorCliente(clienteId);
     }
-
+    @GetMapping("/detalle/{envioId}")
+    public ResponseEntity<?> obtenerPedidoDesdeEnvio(@PathVariable Long envioId) {
+        Optional<Envio> optionalEnvio = envioRepository.findById(envioId);
+        if (optionalEnvio.isEmpty()) {
+            return ResponseEntity.badRequest().body("Envío no encontrado");
+        }
+        return ResponseEntity.ok(optionalEnvio.get().getPedido());
+    }
 }
