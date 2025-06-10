@@ -8,6 +8,7 @@ class SpringSemestralApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

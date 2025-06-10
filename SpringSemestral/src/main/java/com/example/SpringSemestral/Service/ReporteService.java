@@ -27,4 +27,13 @@ public class ReporteService {
     public Double totalVentasPorFecha(LocalDate desde, LocalDate hasta) {
         return reporteRepository.obtenerTotalVentasPorFecha(desde, hasta);
     }
+    public boolean eliminarReporte(int id) {
+        // Eliminar el reporte por id,
+        if (reporteRepository.existsById(id)) {
+            reporteRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
 }

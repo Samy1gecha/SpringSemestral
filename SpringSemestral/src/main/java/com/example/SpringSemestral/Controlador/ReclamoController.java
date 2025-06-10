@@ -1,8 +1,10 @@
 package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.Reclamo;
+import com.example.SpringSemestral.Repository.ReclamoRepository;
 import com.example.SpringSemestral.Service.ReclamoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +15,8 @@ public class ReclamoController {
 
     @Autowired
     private ReclamoService reclamoService;
-
+    @Autowired
+    private ReclamoRepository reclamoRepository;
     @PostMapping
     public String crearReclamo(
             @RequestParam int clienteId,
@@ -39,5 +42,12 @@ public class ReclamoController {
             @RequestParam String estado
     ) {
         return reclamoService.cambiarEstado(reclamoId, estado);
+    }
+    public ResponseEntity<String> eliminarReclamo(@PathVariable int id) {
+        if (!reclamoRepository.existsById(id)) {
+            return ResponseEntity.ok("Reclamo no encontrado");
+        }
+        reclamoRepository.deleteById(id);
+        return ResponseEntity.ok("Reclamo eliminado correctamente");
     }
 }

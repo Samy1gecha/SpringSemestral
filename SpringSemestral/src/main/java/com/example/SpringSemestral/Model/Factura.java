@@ -17,7 +17,7 @@ public class Factura {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
+    @Column(name = "fecha_emision")
     private LocalDate fechaEmision;
     @ManyToOne
     @JoinColumn(name = "cliente_id")
@@ -28,6 +28,7 @@ public class Factura {
     @JsonIgnoreProperties({"factura"}) // evitar que el pedido incluya la factura de vuelta
     @OneToOne
     @JoinColumn(name = "pedido_id")
+    @JsonIgnore
     private Pedido pedido;
 }
 

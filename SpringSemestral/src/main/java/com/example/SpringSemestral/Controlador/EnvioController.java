@@ -75,4 +75,19 @@ public class EnvioController {
         }
         return ResponseEntity.ok(optionalEnvio.get().getPedido());
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerEnvioPorId(@PathVariable Long id) {
+        return envioRepository.findById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.ok("Envío no encontrado"));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarEnvio(@PathVariable Long id) {
+        if (!envioRepository.existsById(id)) {
+            return ResponseEntity.ok("Envío no encontrado");
+        }
+        envioRepository.deleteById(id);
+        return ResponseEntity.ok("Envío eliminado correctamente");
+    }
 }

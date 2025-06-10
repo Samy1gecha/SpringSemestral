@@ -1,7 +1,7 @@
 package com.example.SpringSemestral.Service;
 
 import com.example.SpringSemestral.Model.User;
-import com.example.SpringSemestral.Repository.UserRepository;
+import com.example.SpringSemestral.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -11,6 +11,12 @@ import java.util.List;
 @Service
 public class UserService {
 
+    @Autowired
+    private PedidoRepository pedidoRepository;
+    @Autowired
+    private ReclamoRepository reclamoRepository;
+    @Autowired
+    private ResenaRepository resenaRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -38,17 +44,35 @@ public class UserService {
     }
 
     public String deleteUser(int id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id); // Elimina en BD
-            return "Usuario eliminado con éxito";
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) return "Usuario no encontrado";
+
+        // 1. Eliminar reclamos
+        var reclamos = reclamoRepository.findByCliente_Id(id);
+        if (!reclamos.isEmpty()) {
+            reclamoRepository.deleteAll(reclamos);
         }
-        return "Usuario no encontrado";
+
+        // 2. Eliminar pedidos (los pedidos también eliminan detalles, envíos y facturas por cascade)
+        var pedidos = pedidoRepository.findByCliente_Id(id);
+        if (!pedidos.isEmpty()) {
+            pedidoRepository.deleteAll(pedidos);
+        }
+
+        // 3. Eliminar reseñas
+        var resenas = resenaRepository.findByCliente_Id(id);
+        if (!resenas.isEmpty()) {
+            resenaRepository.deleteAll(resenas);
+        }
+
+        // 4. Finalmente, eliminar el usuario
+        userRepository.deleteById(id);
+        return "Usuario eliminado con éxito";
     }
 
     public User getUser(int id) {
         return userRepository.findById(id).orElse(null); // Retorna objeto o null
     }
-
     public List<User> getAllUsers() {
         return userRepository.findAll(); // Retorna lista completa desde BD
     }

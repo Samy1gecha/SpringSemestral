@@ -1,6 +1,6 @@
 package com.example.SpringSemestral.Model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,22 +12,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Envio {
+public class Envio  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnoreProperties // oculta el campo id en JSON
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
     @JoinColumn(name = "pedido_id", nullable = false)
-    @JsonIgnoreProperties("envio") // Evita bucles infinitos si Pedido tiene relación a Envio
-    @JsonBackReference
+    @JsonIgnoreProperties({"envio"})  // Evita ciclo serializando Pedido -> Envio -> Pedido
+    @JsonIgnore
     private Pedido pedido;
 
     private String estado; // Ej: "Pendiente", "Enviado", "Entregado"
 
-    private String ruta; // Ruta optimizada (texto simple)
+    private String ruta;
 
     private LocalDateTime fechaAsignacion;
 }
-

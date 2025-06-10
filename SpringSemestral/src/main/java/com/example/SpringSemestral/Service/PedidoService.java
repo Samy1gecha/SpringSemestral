@@ -1,13 +1,10 @@
 package com.example.SpringSemestral.Service;
 
-import com.example.SpringSemestral.Model.Cupon;
-import com.example.SpringSemestral.Model.Pedido;
-import com.example.SpringSemestral.Repository.CuponRepository;
-import com.example.SpringSemestral.Repository.PedidoRepository;
+import com.example.SpringSemestral.Model.*;
+import com.example.SpringSemestral.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.SpringSemestral.Model.Factura;
-import com.example.SpringSemestral.Repository.FacturaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,10 +16,12 @@ public class PedidoService {
     private PedidoRepository pedidoRepository;
     @Autowired
     private FacturaRepository facturaRepository;
-
     @Autowired
     private CuponRepository cuponRepository;
-
+    @Autowired
+    private DetallePedidoRepository detallePedidoRepository;
+    @Autowired
+    private EnvioRepository envioRepository;
     public String crearPedido(Pedido pedido, String cuponCodigo) {
         pedido.setFecha(LocalDate.now());
         pedido.setEstado("PENDIENTE");
@@ -104,5 +103,11 @@ public class PedidoService {
     public List<Pedido> obtenerPedidosPorCliente(int clienteId) {
         return pedidoRepository.findByCliente_Id(clienteId);
     }
-
+    //Eliminar pedido
+    @Transactional
+    public void eliminarPedido(int id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+        pedidoRepository.delete(pedido);
+    }
 }

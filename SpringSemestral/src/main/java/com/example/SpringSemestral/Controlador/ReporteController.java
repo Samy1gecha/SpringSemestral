@@ -57,5 +57,15 @@ public class ReporteController {
         }
         return ResponseEntity.ok(total);
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarReporte(@PathVariable int id) {
+        boolean eliminado = reporteService.eliminarReporte(id);
+        if (eliminado) {
+            return ResponseEntity.ok("Reporte eliminado correctamente");
+        } else {
+            return ResponseEntity.ok("Reporte no encontrado");
+        }
+    }
+
 }
 

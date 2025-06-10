@@ -1,4 +1,5 @@
 package com.example.SpringSemestral.Model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,15 +21,19 @@ public class Pedido {
 
     private String estado; // ejemplo: "PENDIENTE", "ENTREGADO"
 
-    @JsonIgnoreProperties(value = { "password" }) // Esto oculta solo la contraseña del cliente en la respuesta JSON
+    @JsonIgnoreProperties(value = { "password" }) // oculta solo la contraseña del cliente
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     private User cliente;
-    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private Envio envio;
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private List<DetallePedido> detalles;
-    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private Factura factura;
 
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("pedido")
+    private List<DetallePedido> detalles;
+
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Envio envio;
+
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private Factura factura;
 }
