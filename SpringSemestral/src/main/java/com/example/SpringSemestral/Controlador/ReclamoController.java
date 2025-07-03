@@ -27,14 +27,24 @@ public class ReclamoController {
     }
 
     @GetMapping
-    public List<Reclamo> verTodos() {
-        return reclamoService.obtenerTodos();
+    public ResponseEntity<?> obtenerTodos() {
+        List<Reclamo> lista = reclamoService.obtenerTodos();
+        if (lista.isEmpty()) {
+            return ResponseEntity.ok("📭 No hay reclamos registrados hasta el momento.");
+        }
+        return ResponseEntity.ok(lista);
     }
 
-    @GetMapping("/cliente/{clienteId}")
-    public List<Reclamo> verPorCliente(@PathVariable int clienteId) {
-        return reclamoService.obtenerPorCliente(clienteId);
+
+    @GetMapping("/cliente/{id}")
+    public ResponseEntity<?> obtenerPorCliente(@PathVariable int id) {
+        List<Reclamo> lista = reclamoService.obtenerPorCliente(id);
+        if (lista.isEmpty()) {
+            return ResponseEntity.ok("📭 Este cliente aún no ha registrado reclamos.");
+        }
+        return ResponseEntity.ok(lista);
     }
+
 
     @PutMapping("/{reclamoId}/estado")
     public String cambiarEstado(
@@ -43,6 +53,13 @@ public class ReclamoController {
     ) {
         return reclamoService.cambiarEstado(reclamoId, estado);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPorId(@PathVariable int id) {
+        return reclamoRepository.findById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.ok("📭 No se encontró ningún reclamo con ese ID."));
+    }
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarReclamo(@PathVariable int id) {
         if (!reclamoRepository.existsById(id)) {
             return ResponseEntity.ok("Reclamo no encontrado");

@@ -43,11 +43,6 @@ public class PedidoController {
         return pedidoService.confirmarPago(id);
     }
 
-    @PutMapping("/{id}/cancelar")
-    public String cancelarPedido(@PathVariable int id) {
-        return pedidoService.cancelarPedido(id);
-    }
-
     @GetMapping("/{id}")
     public Pedido obtenerPedido(@PathVariable int id) {
         return pedidoRepository.findById(id).orElse(null);
@@ -55,7 +50,29 @@ public class PedidoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarPedido(@PathVariable int id) {
-        pedidoService.eliminarPedido(id);
-        return ResponseEntity.ok("Pedido eliminado con éxito");
+        try {
+            String mensaje = pedidoService.eliminarPedido(id);
+
+            if (mensaje.contains("PENDIENTE pueden")) {
+                return ResponseEntity.status(400).body(mensaje);
+            }
+            return ResponseEntity.ok(mensaje);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al eliminar el pedido: " + e.getMessage());
+        }
     }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<String> cancelarPedido(@PathVariable int id) {
+        String resultado = pedidoService.cancelarPedido(id);
+        if (resultado.contains("no encontrado")) {
+            return ResponseEntity.status(404).body(resultado);
+        } else if (resultado.contains("pendientes")) {
+            return ResponseEntity.badRequest().body(resultado);
+        }
+        return ResponseEntity.ok(resultado);
+    }
+
 }

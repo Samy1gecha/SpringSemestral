@@ -31,6 +31,22 @@ public class ReclamoService {
             return "Cliente o pedido no encontrado";
         }
 
+        // Validar estado del pedido
+        if (!"Entregado".equalsIgnoreCase(pedido.getEstado())) {
+            return "Solo se puede reclamar pedidos que estén marcados como ENTREGADO.";
+        }
+
+        // Evitar duplicados
+        boolean yaExiste = reclamoRepository
+                .findByCliente_Id(clienteId)
+                .stream()
+                .anyMatch(r -> r.getPedido().getId() == pedidoId);
+
+        if (yaExiste) {
+            return "Ya existe un reclamo para este pedido por este cliente.";
+        }
+
+        // Crear reclamo nuevo
         Reclamo reclamo = new Reclamo();
         reclamo.setCliente(cliente);
         reclamo.setPedido(pedido);
@@ -38,7 +54,7 @@ public class ReclamoService {
         reclamo.setEstado("PENDIENTE");
 
         reclamoRepository.save(reclamo);
-        return "Reclamo creado con éxito";
+        return "Reclamo creado con éxito. ID: " + reclamo.getId();
     }
 
     public List<Reclamo> obtenerTodos() {
@@ -61,6 +77,14 @@ public class ReclamoService {
         reclamo.setEstado(nuevoEstado.toUpperCase());
         reclamoRepository.save(reclamo);
         return "Estado del reclamo actualizado";
+    }
+
+    public String eliminarReclamo(int reclamoId) {
+        Reclamo reclamo = reclamoRepository.findById(reclamoId).orElse(null);
+        if (reclamo == null) return "Reclamo no encontrado";
+
+        reclamoRepository.delete(reclamo);
+        return "Reclamo eliminado con éxito";
     }
 }
 

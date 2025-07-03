@@ -88,8 +88,36 @@ public class PedidoService {
 
         return "El pedido ya está pagado";
     }
-    public String cancelarPedido(int pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId).orElse(null);
+    @Transactional
+    public String eliminarPedido(int id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+
+        if (!pedido.getEstado().equalsIgnoreCase("PENDIENTE")) {
+            return "⚠️ El pedido que desea eliminar ya fue procesado. Solo los pedidos con estado PENDIENTE pueden cancelarse o eliminarse.";
+        }
+
+        // Eliminar factura si existe
+        if (pedido.getFactura() != null) {
+            facturaRepository.delete(pedido.getFactura());
+        }
+
+        // Eliminar detalles si hay
+        if (pedido.getDetalles() != null && !pedido.getDetalles().isEmpty()) {
+            detallePedidoRepository.deleteAll(pedido.getDetalles());
+        }
+
+        // Eliminar envío si existe
+        if (pedido.getEnvio() != null) {
+            envioRepository.delete(pedido.getEnvio());
+        }
+
+        pedidoRepository.delete(pedido);
+        return "✅ Pedido eliminado correctamente.";
+    }
+
+    public String cancelarPedido(int id) {
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
         if (pedido == null) return "Pedido no encontrado";
 
         if (!pedido.getEstado().equalsIgnoreCase("PENDIENTE")) {
@@ -100,14 +128,5 @@ public class PedidoService {
         pedidoRepository.save(pedido);
         return "Pedido cancelado correctamente";
     }
-    public List<Pedido> obtenerPedidosPorCliente(int clienteId) {
-        return pedidoRepository.findByCliente_Id(clienteId);
-    }
-    //Eliminar pedido
-    @Transactional
-    public void eliminarPedido(int id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
-        pedidoRepository.delete(pedido);
-    }
+
 }

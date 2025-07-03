@@ -45,7 +45,17 @@ public class ResenaService {
         resenaRepository.save(resena);
         return "Reseña creada con éxito";
     }
+    public Resena verPorId(int id) {
+        return resenaRepository.findById(id).orElse(null);
+    }
 
+    public String eliminarPorId(int id) {
+        Resena resena = resenaRepository.findById(id).orElse(null);
+        if (resena == null) return "Reseña no encontrada";
+
+        resenaRepository.delete(resena);
+        return "Reseña eliminada con éxito";
+    }
     public List<Resena> verTodasResenas() {
         return resenaRepository.findAll();
     }

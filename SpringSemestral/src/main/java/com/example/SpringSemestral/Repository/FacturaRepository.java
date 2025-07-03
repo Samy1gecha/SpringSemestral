@@ -18,7 +18,5 @@ public interface FacturaRepository extends JpaRepository<Factura, Integer> {
     List<Factura> findAll();
 
     void deleteAllByPedido_Id(int pedidoId);
-
-
 }
 

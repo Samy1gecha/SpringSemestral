@@ -1,34 +1,36 @@
-package com.example.SpringSemestral.Model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+    package com.example.SpringSemestral.Model;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.persistence.*;
-import lombok.*;
+    import com.fasterxml.jackson.annotation.JsonManagedReference;
+    import jakarta.persistence.*;
+    import lombok.*;
 
-import java.time.LocalDate;
+    import java.time.LocalDate;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Entity
-@Table(name = "FACTURAS")
-public class Factura {
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Entity
+    @Table(name = "FACTURAS")
+    public class Factura {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Column(name = "fecha_emision")
-    private LocalDate fechaEmision;
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    @JsonIgnore
-    private User cliente;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private int id;
+        @Column(name = "fecha_emision")
+        private LocalDate fechaEmision;
+        private String estado;
 
-    private double montoTotal;
-    @JsonIgnoreProperties({"factura"}) // evitar que el pedido incluya la factura de vuelta
-    @OneToOne
-    @JoinColumn(name = "pedido_id")
-    @JsonIgnore
-    private Pedido pedido;
-}
+        @ManyToOne
+        @JoinColumn(name = "cliente_id")
+        @JsonIgnoreProperties({"reclamos", "reseñas", "password"})
+        private User cliente;
+
+        private double montoTotal;
+        @OneToOne
+        @JoinColumn(name = "pedido_id")
+        @JsonManagedReference
+        private Pedido pedido;
+    }
 

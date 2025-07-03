@@ -23,10 +23,12 @@ public class DetallePedido {
 
     @ManyToOne
     @JoinColumn(name = "pedido_id")
+    @JsonIgnore
     private Pedido pedido;
 
     @ManyToOne
     @JoinColumn(name = "producto_id")
-    @JsonIgnoreProperties(value = { "id" }) // oculta solo el id del producto
+    @JsonIgnoreProperties("detalles")
     private Product producto;
+
 }

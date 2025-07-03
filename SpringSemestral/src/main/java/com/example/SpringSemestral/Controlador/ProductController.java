@@ -2,6 +2,7 @@ package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.Product;
 import com.example.SpringSemestral.Service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,9 +29,9 @@ public class ProductController {
 
     // Crear producto (solo ADMIN o EMPLEADO)
     @PostMapping
-    public ResponseEntity<String> postProduct(@RequestBody Product product, @RequestHeader("X-Role") String role) {
+    public ResponseEntity<String> postProduct(@Valid @RequestBody Product product,
+                                              @RequestHeader("X-Role") String role) {
         if (role == null || !isAuthorized(role)) {
-            // Si no hay rol o no está autorizado
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado");
         }
 

@@ -16,7 +16,7 @@ public class Envio  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnoreProperties // oculta el campo id en JSON
+    @JsonIgnore
     private Long id;
 
     @OneToOne
