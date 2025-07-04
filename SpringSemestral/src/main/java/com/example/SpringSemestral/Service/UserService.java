@@ -60,21 +60,29 @@ public class UserService {
         userRepository.delete(u);
     }
     @Transactional
-    public void deleteUser(int id) {
-        Optional<User> optional = userRepository.findById(id);
-        if (optional.isEmpty()) throw new NoSuchElementException("Usuario no encontrado");
-        // Eliminar reseñas
+    public String deleteUser(int id) {
+        // Buscar usuario directamente
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+        // Verificar si tiene pedidos
+        boolean tienePedidos = !pedidoRepository.findByCliente_Id(id).isEmpty();
+        if (tienePedidos) {
+            // Marcar como inactivo
+            user.setActivo(false);
+            userRepository.save(user);
+            return "El usuario tiene pedidos. Se marcó como inactivo.";
+        }
+        // Eliminar sus reseñas
         resenaRepository.deleteAll(resenaRepository.findByCliente_Id(id));
-        // Obtener pedidos
+        // Eliminar reclamos relacionados a sus pedidos
         var pedidos = pedidoRepository.findByCliente_Id(id);
-        // Eliminar reclamos ligados a pedidos
         for (var pedido : pedidos) {
             var reclamos = reclamoRepository.findByPedido_Id(pedido.getId());
             reclamoRepository.deleteAll(reclamos);
         }
         // Eliminar reclamos directos
         reclamoRepository.deleteAll(reclamoRepository.findByCliente_Id(id));
-        // Desvincular relaciones en pedidos
+        // Limpiar relaciones antes de borrar pedidos
         for (var pedido : pedidos) {
             pedido.setFactura(null);
             pedido.setEnvio(null);
@@ -84,6 +92,9 @@ public class UserService {
         }
         pedidoRepository.saveAll(pedidos);
         pedidoRepository.deleteAll(pedidos);
-        userRepository.deleteById(id);
+        // Finalmente, eliminar el usuario
+        userRepository.delete(user);
+        return "Usuario eliminado correctamente.";
     }
+
 }

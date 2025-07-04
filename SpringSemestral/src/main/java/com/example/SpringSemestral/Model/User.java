@@ -21,7 +21,7 @@ public class User {
 
     @Column(unique = true)
     private String email;
-
+    private boolean activo = true;
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private List<Factura> facturas;

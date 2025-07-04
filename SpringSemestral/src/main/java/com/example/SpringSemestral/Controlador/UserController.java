@@ -40,6 +40,8 @@ public class UserController {
     public ResponseEntity<CollectionModel<EntityModel<User>>> getAllUsers() {
         List<User> lista = userService.getAllUsers();
         if (lista.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("Mensaje :", "❌ No hay usuarios registrados.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.ok(assembler.toCollectionModel(lista));
@@ -79,17 +81,12 @@ public class UserController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUserById(@PathVariable int id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        try {
+            String result = userService.deleteUser(id);
+            return ResponseEntity.ok(result);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
-        pedidoRepository.deleteAll(pedidoRepository.findByCliente_Id(id));
-        reclamoRepository.deleteAll(reclamoRepository.findByCliente_Id(id));
-        resenaRepository.deleteAll(resenaRepository.findByCliente_Id(id));
-        userRepository.deleteById(id);
-
-        return ResponseEntity.ok("Usuario eliminado con éxito");
     }
     @Operation(summary = "Actualizar usuario")
     @ApiResponses({
