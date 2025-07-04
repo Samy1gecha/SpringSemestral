@@ -1,96 +1,89 @@
 package com.example.SpringSemestral.Service;
+
 import com.example.SpringSemestral.Model.User;
 import com.example.SpringSemestral.Repository.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 public class UserService {
-
-    @Autowired
-    private PedidoRepository pedidoRepository;
-    @Autowired
-    private ReclamoRepository reclamoRepository;
-    @Autowired
-    private ResenaRepository resenaRepository;
-    @Autowired
-    private UserRepository userRepository;
-
-    public String addUser(User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return "Error: Ya existe un usuario con ese email";
-        }
-
-        try {
-            userRepository.save(user);
-            return "Usuario agregado con éxito";
-        } catch (DataIntegrityViolationException e) {
-            return "Error: Ya existe un usuario con ese email (excepción)";
-        }
-    }
-
-    public String updateUser(User user) {
-        if (userRepository.existsById(user.getId())) {
-            userRepository.save(user);
-            return "Usuario actualizado con éxito";
-        }
-        return "Usuario no encontrado";
-    }
-
-    @Transactional
-    public String deleteUser(int id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user == null) return "Usuario no encontrado";
-
-        // Eliminar reseñas
-        resenaRepository.deleteAll(resenaRepository.findByCliente_Id(id));
-
-        // Obtener pedidos del usuario
-        var pedidos = pedidoRepository.findByCliente_Id(id);
-
-        // Eliminar reclamos ligados a cada pedido
-        for (var pedido : pedidos) {
-            var reclamosDelPedido = reclamoRepository.findByPedido_Id(pedido.getId());
-            if (!reclamosDelPedido.isEmpty()) {
-                reclamoRepository.deleteAll(reclamosDelPedido);
-            }
-        }
-
-        // Eliminar reclamos directos del usuario (por si quedara alguno)
-        reclamoRepository.deleteAll(reclamoRepository.findByCliente_Id(id));
-
-        // Romper relaciones en pedidos (Factura, Envío, Detalles)
-        for (var pedido : pedidos) {
-            if (pedido.getFactura() != null) pedido.setFactura(null);
-            if (pedido.getEnvio() != null) pedido.setEnvio(null);
-            if (pedido.getDetalles() != null && !pedido.getDetalles().isEmpty()) {
-                pedido.getDetalles().clear();
-            }
-        }
-
-        // Guardar cambios y eliminar pedidos
-        pedidoRepository.saveAll(pedidos);
-        pedidoRepository.deleteAll(pedidos);
-
-        // Eliminar el usuario
-        userRepository.deleteById(id);
-
-        return "Usuario eliminado con éxito";
-    }
-
-    public User getUser(int id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
+    @Autowired private PedidoRepository pedidoRepository;
+    @Autowired private ReclamoRepository reclamoRepository;
+    @Autowired private ResenaRepository resenaRepository;
+    @Autowired private UserRepository userRepository;
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+    public Optional<User> getOptionalUser(int id) {
+        return userRepository.findById(id);
+    }
+    public Optional<User> getOptionalUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+    public void addUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Ya existe un usuario con ese email.");
+        }
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Ya existe un usuario con ese email (violación de integridad).");
+        }
+    }
+    public void updateUser(int id, User updatedUser) {
+        Optional<User> optional = userRepository.findById(id);
+        if (optional.isPresent()) {
+            User user = optional.get();
+            user.setUsername(updatedUser.getUsername());
+            user.setEmail(updatedUser.getEmail());
+            user.setPassword(updatedUser.getPassword());
+            user.setRol(updatedUser.getRol());
+            userRepository.save(user);
+        } else {
+            throw new NoSuchElementException("Usuario no encontrado para actualizar.");
+        }
+    }
+    // Comprueba si existe un usuario por su ID
+    public boolean existsById(Integer id) {
+        return userRepository.existsById(id);
+    }
 
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
+    // Elimina un usuario por su ID; lanza NoSuchElementException si no existe
+    public void deleteById(Integer id) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+        userRepository.delete(u);
+    }
+    @Transactional
+    public void deleteUser(int id) {
+        Optional<User> optional = userRepository.findById(id);
+        if (optional.isEmpty()) throw new NoSuchElementException("Usuario no encontrado");
+        // Eliminar reseñas
+        resenaRepository.deleteAll(resenaRepository.findByCliente_Id(id));
+        // Obtener pedidos
+        var pedidos = pedidoRepository.findByCliente_Id(id);
+        // Eliminar reclamos ligados a pedidos
+        for (var pedido : pedidos) {
+            var reclamos = reclamoRepository.findByPedido_Id(pedido.getId());
+            reclamoRepository.deleteAll(reclamos);
+        }
+        // Eliminar reclamos directos
+        reclamoRepository.deleteAll(reclamoRepository.findByCliente_Id(id));
+        // Desvincular relaciones en pedidos
+        for (var pedido : pedidos) {
+            pedido.setFactura(null);
+            pedido.setEnvio(null);
+            if (pedido.getDetalles() != null) {
+                pedido.getDetalles().clear();
+            }
+        }
+        pedidoRepository.saveAll(pedidos);
+        pedidoRepository.deleteAll(pedidos);
+        userRepository.deleteById(id);
     }
 }

@@ -1,60 +1,122 @@
 package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.User;
+import com.example.SpringSemestral.Service.UserService;
+import com.example.SpringSemestral.Assembler.UserModelAssembler;
 import com.example.SpringSemestral.Repository.PedidoRepository;
 import com.example.SpringSemestral.Repository.ReclamoRepository;
 import com.example.SpringSemestral.Repository.ResenaRepository;
 import com.example.SpringSemestral.Repository.UserRepository;
-import com.example.SpringSemestral.Service.UserService;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+
+import java.util.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/users")
-
+@Tag(name = "Usuarios", description = "Gestión de usuarios del sistema")
 public class UserController {
-    @Autowired
-    UserService userService;
-    @Autowired
-    private PedidoRepository pedidoRepository;
-    @Autowired
-    private ReclamoRepository reclamoRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private ResenaRepository resenaRepository;
+
+    @Autowired private UserService userService;
+    @Autowired private UserRepository userRepository;
+    @Autowired private PedidoRepository pedidoRepository;
+    @Autowired private ReclamoRepository reclamoRepository;
+    @Autowired private ResenaRepository resenaRepository;
+    @Autowired private UserModelAssembler assembler;
+
+    @Operation(summary = "Obtener todos los usuarios")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuarios encontrados"),
+            @ApiResponse(responseCode = "404", description = "No hay usuarios registrados")
+    })
     @GetMapping
-    public List<User> getUsers() {return userService.getAllUsers();}
+    public ResponseEntity<CollectionModel<EntityModel<User>>> getAllUsers() {
+        List<User> lista = userService.getAllUsers();
+        if (lista.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(assembler.toCollectionModel(lista));
+    }
 
+    @Operation(summary = "Obtener usuario por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
     @GetMapping("/{id}")
+    public ResponseEntity<EntityModel<User>> getUserById(@PathVariable int id) {
+        return userService.getOptionalUser(id)
+                .map(assembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 
-    public User getUserById(@PathVariable int id) {return userService.getUser(id);}
-
+    @Operation(summary = "Registrar nuevo usuario")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Usuario creado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
     @PostMapping
-    public String postUser(@RequestBody User user){return userService.addUser(user);}
+    public ResponseEntity<EntityModel<User>> addUser(@RequestBody User user) {
+        userService.addUser(user);
+        return userService.getOptionalUser(user.getId())
+                .map(assembler::toModel)
+                .map(model -> ResponseEntity.status(HttpStatus.CREATED).body(model))
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    }
 
+    @Operation(summary = "Eliminar usuario por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario eliminado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable int id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user == null) return "Usuario no encontrado";
+    public ResponseEntity<String> deleteUserById(@PathVariable int id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
 
-        // Eliminar primero todas las entidades relacionadas
         pedidoRepository.deleteAll(pedidoRepository.findByCliente_Id(id));
         reclamoRepository.deleteAll(reclamoRepository.findByCliente_Id(id));
         resenaRepository.deleteAll(resenaRepository.findByCliente_Id(id));
-
-        // Ahora se puede eliminar el usuario
         userRepository.deleteById(id);
-        return "Usuario eliminado con éxito";
+
+        return ResponseEntity.ok("Usuario eliminado con éxito");
+    }
+    @Operation(summary = "Actualizar usuario")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario actualizado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<EntityModel<User>> updateUser(@PathVariable int id, @RequestBody User user) {
+        return userService.getOptionalUser(id)
+                .map(existing -> {
+                    userService.updateUser(id, user);
+                    return ResponseEntity.ok(assembler.toModel(user));
+                })
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @PutMapping
-    public String putUser(@RequestBody User user){
-        return userService.updateUser(user);
+    @Operation(summary = "Buscar usuario por email")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+            @ApiResponse(responseCode = "404", description = "No existe un usuario con ese email")
+    })
+    @GetMapping("/email/{email}")
+    public ResponseEntity<EntityModel<User>> getUserByEmail(@PathVariable String email) {
+        return userService.getOptionalUserByEmail(email)
+                .map(assembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-
-    @GetMapping("/email/{email}") //Para el userService por email
-    public User getUserByEmail(@PathVariable String email) {return userService.getUserByEmail(email);}
-
 }
+

@@ -1,79 +1,86 @@
 package com.example.SpringSemestral.Controlador;
 
 import com.example.SpringSemestral.Model.Cupon;
-import com.example.SpringSemestral.Repository.CuponRepository;
+import com.example.SpringSemestral.Service.CuponService;
+import com.example.SpringSemestral.Assembler.CuponModelAssembler;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/cupones")
+@Tag(name = "Cupones", description = "CRUD de cupones con HATEOAS")
 public class CuponController {
 
-    @Autowired
-    private CuponRepository cuponRepository;
+    @Autowired private CuponService service;
+    @Autowired private CuponModelAssembler assembler;
 
+    @Operation(summary = "Crear un cupón")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Cupón creado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
     @PostMapping
-    public String crearCupon(@RequestBody Cupon cupon) {
-        if (cupon.getCodigo() == null || cupon.getCodigo().isBlank()) {
-            return "Código del cupón es obligatorio";
-        }
-
-        if (cupon.getPorcentajeDescuento() <= 0 || cupon.getPorcentajeDescuento() > 100) {
-            return "El descuento debe ser mayor a 0 y como máximo 100%";
-        }
-
-        if (cuponRepository.findByCodigo(cupon.getCodigo()).isPresent()) {
-            return "Ya existe un cupón con ese código";
-        }
-
-        cuponRepository.save(cupon);
-        return "Cupón creado con éxito";
-    }
-    @DeleteMapping("/codigo/{codigo}")
-    public String eliminarCuponPorCodigo(@PathVariable String codigo) {
-        Cupon cupon = cuponRepository.findByCodigo(codigo).orElse(null);
-        if (cupon == null) {
-            return "Cupón no encontrado";
-        }
-        cuponRepository.delete(cupon);
-        return "Cupón eliminado correctamente";
+    public ResponseEntity<EntityModel<Cupon>> create(@RequestBody Cupon c) {
+        Cupon saved = service.create(c);
+        return ResponseEntity
+                .created(linkTo(methodOn(CuponController.class).getById(saved.getId())).toUri())
+                .body(assembler.toModel(saved));
     }
 
-
+    @Operation(summary = "Listar todos los cupones")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cupones encontrados"),
+            @ApiResponse(responseCode = "204", description = "No hay cupones")
+    })
     @GetMapping
-    public List<Cupon> listarCupones() {
-        return cuponRepository.findAll();
+    public ResponseEntity<CollectionModel<EntityModel<Cupon>>> getAll() {
+        List<Cupon> list = service.getAll();
+        if (list.isEmpty()) return ResponseEntity.noContent().build();
+        List<EntityModel<Cupon>> models = list.stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(
+                CollectionModel.of(models,
+                        linkTo(methodOn(CuponController.class).getAll()).withSelfRel()
+                )
+        );
     }
 
-    @GetMapping("/{codigo}")
-    public Cupon buscarPorCodigo(@PathVariable String codigo) {
-        return cuponRepository.findByCodigo(codigo).orElse(null);
+    @Operation(summary = "Obtener un cupón por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cupón encontrado"),
+            @ApiResponse(responseCode = "404", description = "No se encontró el cupón")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<EntityModel<Cupon>> getById(@PathVariable int id) {
+        return service.getById(id)
+                .map(assembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    @PostMapping("/actualizar")
-    public String actualizarCupon(
-            @RequestParam(required = false) Integer id,
-            @RequestBody Cupon cuponDatos) {
 
-        if (id == null) {
-            return "El id es obligatorio para actualizar un cupón";
+    @Operation(summary = "Eliminar un cupón")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Eliminación exitosa"),
+            @ApiResponse(responseCode = "404", description = "No se encontró el cupón")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable int id) {
+        if (!service.deleteById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        return cuponRepository.findById(id)
-                .map(cuponExistente -> {
-                    // Actualizas los campos que quieras con los datos entrantes
-                    if (cuponDatos.getCodigo() != null && !cuponDatos.getCodigo().isBlank()) {
-                        cuponExistente.setCodigo(cuponDatos.getCodigo());
-                    }
-                    if (cuponDatos.getPorcentajeDescuento() > 0 && cuponDatos.getPorcentajeDescuento() <= 100) {
-                        cuponExistente.setPorcentajeDescuento(cuponDatos.getPorcentajeDescuento());
-                    }
-                    cuponRepository.save(cuponExistente);
-                    return "Cupón actualizado correctamente";
-                })
-                .orElse("Cupón con id " + id + " no encontrado");
+        return ResponseEntity.noContent().build();
     }
-
 }
-

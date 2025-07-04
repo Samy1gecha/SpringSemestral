@@ -3,9 +3,10 @@ package com.example.SpringSemestral.Service;
 import com.example.SpringSemestral.Model.Product;
 import com.example.SpringSemestral.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -13,36 +14,44 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public String addProduct(Product product) {
-        // Verifica si ya hay un producto con ese nombre
-        if(productRepository.existsByNombre(product.getNombre())) {
-            return "Error: Ya existe un producto con ese nombre";
-        }
-        productRepository.save(product);
-        return "Producto agregado con éxito";
-    }
-
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Product getProduct(int id) {
-        return productRepository.findById(id).orElse(null);
+    public Optional<Product> getOptionalProduct(int id) {
+        return productRepository.findById(id);
     }
 
-    public String updateProduct(Product product) {
-        if (productRepository.existsById(product.getId())) {
-            productRepository.save(product);
-            return "Producto actualizado con éxito";
+    public void addProduct(Product product) {
+        if (productRepository.existsByNombre(product.getNombre())) {
+            throw new IllegalArgumentException("Ya existe un producto con ese nombre.");
         }
-        return "Producto no encontrado";
+        try {
+            productRepository.save(product);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Error al guardar el producto: datos duplicados o inválidos.");
+        }
     }
 
-    public String deleteProduct(int id) {
+    public void updateProduct(Product productoActualizado) {
+        Optional<Product> optional = productRepository.findById(productoActualizado.getId());
+        if (optional.isPresent()) {
+            Product producto = optional.get();
+            producto.setNombre(productoActualizado.getNombre());
+            producto.setDescripcion(productoActualizado.getDescripcion());
+            producto.setPrecio(productoActualizado.getPrecio());
+            producto.setStock(productoActualizado.getStock());
+            productRepository.save(producto);
+        } else {
+            throw new NoSuchElementException("Producto no encontrado.");
+        }
+    }
+
+    public void deleteProduct(int id) {
         if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
-            return "Producto eliminado con éxito";
+        } else {
+            throw new NoSuchElementException("Producto no encontrado.");
         }
-        return "Producto no encontrado";
     }
 }
